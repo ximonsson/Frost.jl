@@ -12,8 +12,8 @@ struct ObservationTimeSeries
 	source_id::Union{String,Nothing}
 	geometry::Union{Point,Nothing}
 	level::Union{Level,Nothing}
-	valid_from::Union{String,Nothing}
-	valid_to::Union{String,Nothing}
+	valid_from::Union{ZonedDateTime,Nothing}
+	valid_to::Union{ZonedDateTime,Nothing}
 	time_offset::Union{String,Nothing}
 	time_resolution::Union{String,Nothing}
 	time_series_id::Union{Int,Nothing}
@@ -99,7 +99,7 @@ struct ObservationTimeSeriesResponse
 	type::Union{String,Nothing}
 	api_version::Union{String,Nothing}
 	license::Union{String,Nothing}
-	created_at::Union{ZonedDateTime,Nothing}
+	created_at::Union{String,Nothing}
 	query_time::Union{Float32,Nothing}
 	current_item_count::Union{Int,Nothing}
 	items_per_page::Union{Int,Nothing}
@@ -134,5 +134,9 @@ DataFrames.DataFrame(r::ObservationTimeSeriesResponse) = map(NamedTuple, r.data)
 
 function observation_timeseries(sources = "", reference_time = "")
 	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/observations/availableTimeSeries/v0.jsonld")
-	JSON3.read(String(r.body), ObservationTimeSeriesResponse, dateformat = dateformat"yyyy-mm-ddTHH:MM:SSzzz")
+	JSON3.read(
+		String(r.body),
+		ObservationTimeSeriesResponse,
+		dateformat = dateformat"yyyy-mm-ddTHH:MM:SS.ssszzz",
+	)
 end

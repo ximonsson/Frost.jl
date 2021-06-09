@@ -9,8 +9,8 @@ struct Source
 	geometry::Union{Point,Nothing}
 	distance::Union{Dict,Nothing}
 	masl::Union{Int,Nothing}
-	valid_from::Union{String,Nothing}
-	valid_to::Union{String,Nothing}
+	valid_from::Union{ZonedDateTime,Nothing}
+	valid_to::Union{ZonedDateTime,Nothing}
 	county::Union{String,Nothing}
 	county_id::Union{Int,Nothing}
 	municipality::Union{String,Nothing}
@@ -95,7 +95,7 @@ struct SourceResponse
 	type::Union{String,Nothing}
 	api_version::Union{String,Nothing}
 	license::Union{String,Nothing}
-	created_at::Union{ZonedDateTime,Nothing}
+	created_at::Union{String,Nothing}
 	query_time::Union{Float32,Nothing}
 	current_item_count::Union{Int,Nothing}
 	items_per_page::Union{Int,Nothing}
@@ -130,5 +130,5 @@ DataFrames.DataFrame(s::SourceResponse) = map(NamedTuple, s.data) |> DataFrame
 
 function sources(IDs = "", types = "")
 	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/sources/v0.jsonld")
-	JSON3.read(String(r.body), SourceResponse, dateformat = dateformat"yyyy-mm-ddTHH:MM:SSzzz")
+	JSON3.read(String(r.body), SourceResponse, dateformat = dateformat"yyyy-mm-ddTHH:MM:SS.ssszzz")
 end
