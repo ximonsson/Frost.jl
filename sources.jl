@@ -1,59 +1,114 @@
-using Dates, DataFrames, HTTP, JSON
+using Dates, DataFrames, HTTP, JSON3, JSON, StructTypes, TimeZones
 
 struct Point
 	type::String
 	coordinates::Vector{Float64}
+	nearest::Bool
 end
 
+StructTypes.StructType(::Type{Point}) = StructTypes.Struct()
+
+StructTypes.names(::Type{Point}) = (
+	(:type, Symbol("@type")),
+	(:coordinates, :coordinates),
+)
+
 struct Source
-	type::String
-	ID::String
-	name::String
-	short_name::String
-	country::String
-	country_code::String
-	wmold::Dict
-	geometry::Point
-	distance::Dict
-	masl::Dict
-	valid_from::Date
-	valid_to::Date
-	county::String
-	county_id::Int
-	municipality::String
-	municipality_id::Int
-	station_holders::Vector{String}
-	external_ids::Vector{String}
-	icao_codes::Vector{String}
-	ship_codes::Vector{String}
-	wigos_id::String
+	type::Union{String,Nothing}
+	ID::Union{String,Nothing}
+	name::Union{String,Nothing}
+	short_name::Union{String,Nothing}
+	country::Union{String,Nothing}
+	country_code::Union{String,Nothing}
+	wmo_id::Union{Int,Nothing}
+	geometry::Union{Point,Nothing}
+	distance::Union{Dict,Nothing}
+	masl::Union{Int,Nothing}
+	valid_from::Union{String,Nothing}
+	valid_to::Union{String,Nothing}
+	county::Union{String,Nothing}
+	county_id::Union{Int,Nothing}
+	municipality::Union{String,Nothing}
+	municipality_id::Union{Int,Nothing}
+	station_holders::Union{Vector{String},Nothing}
+	external_ids::Union{Vector{String},Nothing}
+	icao_codes::Union{Vector{String},Nothing}
+	ship_codes::Union{Vector{String},Nothing}
+	wigos_id::Union{String,Nothing}
 end
+
+StructTypes.StructType(::Type{Source}) = StructTypes.Struct()
+
+StructTypes.names(::Type{Source}) = (
+	(:type, Symbol("@type")),
+	(:ID, :id),
+	(:name, :name),
+	(:short_name, :shortName),
+	(:country, :country),
+	(:country_code, :countryCode),
+	(:wmo_id, :wmoId),
+	(:geometry, :geometry),
+	(:distance, :distance),
+	(:masl, :masl),
+	(:valid_from, :validFrom),
+	(:valid_to, :validTo),
+	(:county, :county),
+	(:county_id, :countyId),
+	(:municipality, :municipality),
+	(:municipality_id, :municipalityId),
+	(:station_holders, :stationHolders),
+	(:external_ids, :externalIds),
+	(:icao_codes, :icaoCodes),
+	(:ship_codes, :shipCodes),
+	(:wigos_id, :wigosId),
+)
 
 function DataFrame(s::Source)
 
 end
 
 struct SourceResponse
-	context::String
-	type::String
-	api_version::String
-	license::String
-	created_at::Date
-	query_time::String
-	current_item_count::Int
-	items_per_page::Int
-	offset::Int
-	total_item_count::Int
-	next_link::String
-	prev_link::String
-	current_link::String
-	data::Vector{Source}
+	context::Union{String,Nothing}
+	type::Union{String,Nothing}
+	api_version::Union{String,Nothing}
+	license::Union{String,Nothing}
+	created_at::Union{ZonedDateTime,Nothing}
+	query_time::Union{Float32,Nothing}
+	current_item_count::Union{Int,Nothing}
+	items_per_page::Union{Int,Nothing}
+	offset::Union{Int,Nothing}
+	total_item_count::Union{Int,Nothing}
+	next_link::Union{String,Nothing}
+	prev_link::Union{String,Nothing}
+	current_link::Union{String,Nothing}
+	data::Union{Vector{Source},Nothing}
 end
+
+StructTypes.StructType(::Type{SourceResponse}) = StructTypes.Struct()
+
+StructTypes.names(::Type{SourceResponse}) = (
+	(:context, Symbol("@context")),
+	(:type, Symbol("@type")),
+	(:api_version, :apiVersion),
+	(:license, :license),
+	(:created_at, :createdAt),
+	(:query_time, :queryTime),
+	(:current_item_count, :currentItemCount),
+	(:items_per_page, :itemsPerPage),
+	(:offset, :offset),
+	(:total_item_count, :totalItemCount),
+	(:next_link, :nextLink),
+	(:prev_link, :prevLink),
+	(:current_link, :currentLink),
+	(:data, :data),
+)
+
+DataFrame(s::SourceResponse) = mapreduce(DataFrame, vcat, s.data)
 
 const CLIENT_ID = ENV["CLIENT_ID"]
 const CLIENT_SECRET = ENV["CLIENT_SECRET"]
 
 function sources(IDs = "", types = "")
 	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/sources/v0.jsonld")
-	r.body |> String |> JSON.parse
+	JSON3.read(String(r.body), SourceResponse, dateformat = dateformat"yyyy-mm-ddTHH:MM:SSzzz")
 end
