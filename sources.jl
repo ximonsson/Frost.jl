@@ -1,4 +1,4 @@
-using Dates, DataFrames, HTTP, JSON3, JSON, StructTypes, TimeZones
+using Dates, DataFrames, HTTP, JSON3, StructTypes, TimeZones
 
 struct Point
 	type::String
@@ -63,8 +63,46 @@ StructTypes.names(::Type{Source}) = (
 	(:wigos_id, :wigosId),
 )
 
-function DataFrame(s::Source)
+function DataFrames.DataFrame(s::Source)
+	#
+	# some columns point to vectors, mark these as "special"
+	# they will be joined to one string
+	#
 
+	special_fields = [:station_holders, :external_ids, :icao_codes, :ship_codes]
+
+	special_fn(f) = getfield(s, f) |> isnothing ? f => missing : f => join(getfield(s, f), ";")
+
+	#
+	# create columns for DataFrame
+	#
+
+	# non-special columns
+	fs = filter(
+		∉([special_fields; :geometry],),
+		fieldnames(Source),
+	)
+
+	# ordinary columns
+	cols = [x => y for (x, y) in zip(
+		fs, map(f -> something(getfield(s, f), missing), fs)
+	)]
+
+	# special columns
+	append!(cols, map(
+		special_fn,
+		special_fields,
+	))
+
+	# geometry
+	append!(
+		cols,
+		s.geometry |> !isnothing ?
+			[:lat => s.geometry.coordinates[1], :lon => s.geometry.coordinates[2]] :
+			[:lat => missing, :lon => missing]
+	)
+
+	return cols |> DataFrame
 end
 
 struct SourceResponse
@@ -103,7 +141,7 @@ StructTypes.names(::Type{SourceResponse}) = (
 	(:data, :data),
 )
 
-DataFrame(s::SourceResponse) = mapreduce(DataFrame, vcat, s.data)
+DataFrames.DataFrame(s::SourceResponse) = mapreduce(DataFrame, vcat, s.data)
 
 const CLIENT_ID = ENV["CLIENT_ID"]
 const CLIENT_SECRET = ENV["CLIENT_SECRET"]
