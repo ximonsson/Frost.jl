@@ -1,0 +1,138 @@
+struct Level
+	level_type::String
+	unit::String
+	value::Real
+end
+
+StructTypes.StructType(::Type{Level}) = StructTypes.Struct()
+
+StructTypes.names(::Type{Level}) = ((:level_type, :levelType),)
+
+struct ObservationTimeSeries
+	source_id::Union{String,Nothing}
+	geometry::Union{Point,Nothing}
+	level::Union{Level,Nothing}
+	valid_from::Union{String,Nothing}
+	valid_to::Union{String,Nothing}
+	time_offset::Union{String,Nothing}
+	time_resolution::Union{String,Nothing}
+	time_series_id::Union{Int,Nothing}
+	element_id::Union{String,Nothing}
+	unit::Union{String,Nothing}
+	code_table::Union{String,Nothing}
+	performance_category::Union{String,Nothing}
+	exposure_category::Union{String,Nothing}
+	status::Union{String,Nothing}
+	URI::Union{String,Nothing}
+	user_group_ids::Union{Vector{Int},Nothing}
+end
+
+StructTypes.StructType(::Type{ObservationTimeSeries}) = StructTypes.Struct()
+
+StructTypes.names(::Type{ObservationTimeSeries}) = (
+	(:source_id, :sourceId),
+	(:valid_from, :validFrom),
+	(:valid_to, :validTo),
+	(:time_offset, :timeOffset),
+	(:time_resolution, :timeResolution),
+	(:time_series_id, :timeSeriesId),
+	(:element_id, :elementId),
+	(:code_table, :codeTable),
+	(:performance_category, :performanceCategory),
+	(:exposure_category, :exposureCategory),
+	(:URI, :uri),
+	(:user_group_ids, :userGroupIds),
+)
+
+function DataFrames.DataFrame(o::ObservationTimeSeries)
+	#
+	# some columns point to vectors, mark these as "special"
+	# they will be joined to one string
+	#
+
+	special_fields = [:user_group_ids]
+
+	special_fn(f) = getfield(o, f) |> isnothing ? f => missing : f => join(getfield(o, f), ";")
+
+	#
+	# create columns for DataFrame
+	#
+
+	# non-special columns
+	fs = filter(
+		∉([special_fields; [:level, :geometry]],),
+		fieldnames(ObservationTimeSeries),
+	)
+
+	# ordinary columns
+	cols = [x => y for (x, y) in zip(
+		fs, map(f -> something(getfield(o, f), missing), fs)
+	)]
+
+	# special columns
+	append!(cols, map(
+		special_fn,
+		special_fields,
+	))
+
+	# geometry
+	append!(
+		cols,
+		o.geometry |> !isnothing ?
+			[:lat => s.geometry.coordinates[1], :lon => s.geometry.coordinates[2]] :
+			[:lat => missing, :lon => missing]
+	)
+
+	# level
+	append!(
+		cols,
+		o.level |> isnothing ?
+			[:level_type => missing, :level_unit => missing, :level_value => missing] :
+			[:level_type => o.level.level_type, :level_unit => o.level.unit, :level_value => o.level.value]
+	)
+
+	return cols |> DataFrame
+end
+
+struct ObservationTimeSeriesResponse
+	context::Union{String,Nothing}
+	type::Union{String,Nothing}
+	api_version::Union{String,Nothing}
+	license::Union{String,Nothing}
+	created_at::Union{ZonedDateTime,Nothing}
+	query_time::Union{Float32,Nothing}
+	current_item_count::Union{Int,Nothing}
+	items_per_page::Union{Int,Nothing}
+	offset::Union{Int,Nothing}
+	total_item_count::Union{Int,Nothing}
+	next_link::Union{String,Nothing}
+	prev_link::Union{String,Nothing}
+	current_link::Union{String,Nothing}
+	data::Union{Vector{ObservationTimeSeries},Nothing}
+end
+
+StructTypes.StructType(::Type{ObservationTimeSeriesResponse}) = StructTypes.Struct()
+
+StructTypes.names(::Type{ObservationTimeSeriesResponse}) = (
+	(:context, Symbol("@context")),
+	(:type, Symbol("@type")),
+	(:api_version, :apiVersion),
+	(:license, :license),
+	(:created_at, :createdAt),
+	(:query_time, :queryTime),
+	(:current_item_count, :currentItemCount),
+	(:items_per_page, :itemsPerPage),
+	(:offset, :offset),
+	(:total_item_count, :totalItemCount),
+	(:next_link, :nextLink),
+	(:prev_link, :prevLink),
+	(:current_link, :currentLink),
+	(:data, :data),
+)
+
+DataFrames.DataFrame(r::ObservationTimeSeriesResponse) = mapreduce(DataFrame, vcat, r.data)
+
+function observation_timeseries(sources = "", reference_time = "")
+	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/observations/availableTimeSeries/v0.jsonld")
+	JSON3.read(String(r.body), ObservationTimeSeriesResponse, dateformat = dateformat"yyyy-mm-ddTHH:MM:SSzzz")
+end

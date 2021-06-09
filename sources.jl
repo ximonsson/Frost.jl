@@ -1,18 +1,3 @@
-using Dates, DataFrames, HTTP, JSON3, StructTypes, TimeZones
-
-struct Point
-	type::String
-	coordinates::Vector{Float64}
-	nearest::Bool
-end
-
-StructTypes.StructType(::Type{Point}) = StructTypes.Struct()
-
-StructTypes.names(::Type{Point}) = (
-	(:type, Symbol("@type")),
-	(:coordinates, :coordinates),
-)
-
 struct Source
 	type::Union{String,Nothing}
 	ID::Union{String,Nothing}
@@ -142,9 +127,6 @@ StructTypes.names(::Type{SourceResponse}) = (
 )
 
 DataFrames.DataFrame(s::SourceResponse) = mapreduce(DataFrame, vcat, s.data)
-
-const CLIENT_ID = ENV["CLIENT_ID"]
-const CLIENT_SECRET = ENV["CLIENT_SECRET"]
 
 function sources(IDs = "", types = "")
 	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/sources/v0.jsonld")
