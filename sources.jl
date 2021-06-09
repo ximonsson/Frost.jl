@@ -48,7 +48,7 @@ StructTypes.names(::Type{Source}) = (
 	(:wigos_id, :wigosId),
 )
 
-function DataFrames.DataFrame(s::Source)
+function Base.NamedTuple(s::Source)
 	#
 	# some columns point to vectors, mark these as "special"
 	# they will be joined to one string
@@ -87,7 +87,7 @@ function DataFrames.DataFrame(s::Source)
 			[:lat => missing, :lon => missing]
 	)
 
-	return cols |> DataFrame
+	return cols |> NamedTuple
 end
 
 struct SourceResponse
@@ -126,7 +126,7 @@ StructTypes.names(::Type{SourceResponse}) = (
 	(:data, :data),
 )
 
-DataFrames.DataFrame(s::SourceResponse) = mapreduce(DataFrame, vcat, s.data)
+DataFrames.DataFrame(s::SourceResponse) = map(NamedTuple, s.data) |> DataFrame
 
 function sources(IDs = "", types = "")
 	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/sources/v0.jsonld")

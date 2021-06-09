@@ -44,7 +44,7 @@ StructTypes.names(::Type{ObservationTimeSeries}) = (
 	(:user_group_ids, :userGroupIds),
 )
 
-function DataFrames.DataFrame(o::ObservationTimeSeries)
+function Base.NamedTuple(o::ObservationTimeSeries)
 	#
 	# some columns point to vectors, mark these as "special"
 	# they will be joined to one string
@@ -91,7 +91,7 @@ function DataFrames.DataFrame(o::ObservationTimeSeries)
 			[:level_type => o.level.level_type, :level_unit => o.level.unit, :level_value => o.level.value]
 	)
 
-	return cols |> DataFrame
+	return cols |> NamedTuple
 end
 
 struct ObservationTimeSeriesResponse
@@ -130,7 +130,7 @@ StructTypes.names(::Type{ObservationTimeSeriesResponse}) = (
 	(:data, :data),
 )
 
-DataFrames.DataFrame(r::ObservationTimeSeriesResponse) = mapreduce(DataFrame, vcat, r.data)
+DataFrames.DataFrame(r::ObservationTimeSeriesResponse) = map(NamedTuple, r.data) |> DataFrame
 
 function observation_timeseries(sources = "", reference_time = "")
 	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/observations/availableTimeSeries/v0.jsonld")
