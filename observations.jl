@@ -107,7 +107,9 @@ end
 
 struct Observation
 	element_id::Union{String,Nothing}
-	orig_value::Union{String,Nothing}
+	value::Union{Real,Nothing}
+	orig_value::Union{Real,Nothing}
+	unit::Union{String,Nothing}
 	code_table::Union{String,Nothing}
 	level::Union{Level,Nothing}
 	time_offset::Union{String,Nothing}
@@ -138,9 +140,9 @@ StructTypes.names(::Type{Observation}) = (
 )
 
 struct ObservationAtRefTime <: Data
-	source_id::String
-	geometry::Point
-	ref_time::ZonedDateTime
+	source_id::Union{String,Nothing}
+	geometry::Union{Point,Nothing}
+	ref_time::Union{ZonedDateTime,Nothing}
 	observations::Vector{Observation}
 end
 
@@ -157,5 +159,5 @@ StructTypes.names(::Type{ObservationAtRefTime}) = (
 Get observation data from the Frost API.
 """
 function observations(srcs, reftime, els)
-	query("/observations", Observation)
+	query("/observations", ObservationAtRefTime, [:sources => srcs, :referencetime => reftime, :elements => els])
 end
