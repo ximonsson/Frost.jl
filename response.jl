@@ -17,9 +17,9 @@ struct Response{T<:Data}
 	data::Union{Vector{T},Nothing}
 end
 
-StructTypes.StructType(::Type{Response}) = StructTypes.Struct()
+StructTypes.StructType(::Type{Response{T}}) where T<:Data = StructTypes.Struct()
 
-StructTypes.names(::Type{Response}) = (
+StructTypes.names(::Type{Response{T}}) where T<:Data = (
 	(:context, Symbol("@context")),
 	(:type, Symbol("@type")),
 	(:api_version, :apiVersion),
@@ -37,3 +37,17 @@ StructTypes.names(::Type{Response}) = (
 )
 
 DataFrames.DataFrame(r::Response) = map(NamedTuple, r.data) |> DataFrame
+
+"""
+	query(endpoint::AbstractString, T::Data)
+
+Find timeseries metadata by source and/or element.
+"""
+function query(endpoint::AbstractString, T, args...; kwargs...)
+	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/$endpoint/v0.jsonld")
+	JSON3.read(
+		String(r.body),
+		Response{T},
+		dateformat = dateformat"yyyy-mm-ddTHH:MM:SS.ssszzz",
+	)
+end

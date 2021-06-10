@@ -8,7 +8,7 @@ StructTypes.StructType(::Type{Level}) = StructTypes.Struct()
 
 StructTypes.names(::Type{Level}) = ((:level_type, :levelType),)
 
-struct ObservationTimeSeries
+struct ObservationTimeSeries <: Data
 	source_id::Union{String,Nothing}
 	geometry::Union{Point,Nothing}
 	level::Union{Level,Nothing}
@@ -94,43 +94,7 @@ function Base.NamedTuple(o::ObservationTimeSeries)
 	return cols |> NamedTuple
 end
 
-struct ObservationTimeSeriesResponse
-	context::Union{String,Nothing}
-	type::Union{String,Nothing}
-	api_version::Union{String,Nothing}
-	license::Union{String,Nothing}
-	created_at::Union{String,Nothing}
-	query_time::Union{Float32,Nothing}
-	current_item_count::Union{Int,Nothing}
-	items_per_page::Union{Int,Nothing}
-	offset::Union{Int,Nothing}
-	total_item_count::Union{Int,Nothing}
-	next_link::Union{String,Nothing}
-	prev_link::Union{String,Nothing}
-	current_link::Union{String,Nothing}
-	data::Union{Vector{ObservationTimeSeries},Nothing}
-end
-
-StructTypes.StructType(::Type{ObservationTimeSeriesResponse}) = StructTypes.Struct()
-
-StructTypes.names(::Type{ObservationTimeSeriesResponse}) = (
-	(:context, Symbol("@context")),
-	(:type, Symbol("@type")),
-	(:api_version, :apiVersion),
-	(:license, :license),
-	(:created_at, :createdAt),
-	(:query_time, :queryTime),
-	(:current_item_count, :currentItemCount),
-	(:items_per_page, :itemsPerPage),
-	(:offset, :offset),
-	(:total_item_count, :totalItemCount),
-	(:next_link, :nextLink),
-	(:prev_link, :prevLink),
-	(:current_link, :currentLink),
-	(:data, :data),
-)
-
-DataFrames.DataFrame(r::ObservationTimeSeriesResponse) = map(NamedTuple, r.data) |> DataFrame
+#StructTypes.StructType(::Type{Response{ObservationTimeSeries}}) = StructTypes.Struct()
 
 """
 	obsersaction_timeseries()
@@ -138,12 +102,7 @@ DataFrames.DataFrame(r::ObservationTimeSeriesResponse) = map(NamedTuple, r.data)
 Find timeseries metadata by source and/or element.
 """
 function observation_timeseries(sources = "", reference_time = "")
-	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/observations/availableTimeSeries/v0.jsonld")
-	JSON3.read(
-		String(r.body),
-		ObservationTimeSeriesResponse,
-		dateformat = dateformat"yyyy-mm-ddTHH:MM:SS.ssszzz",
-	)
+	query("observations/availableTimeSeries", ObservationTimeSeries)
 end
 
 struct Observation <: Data
