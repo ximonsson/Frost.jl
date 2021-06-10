@@ -43,8 +43,17 @@ DataFrames.DataFrame(r::Response) = map(NamedTuple, r.data) |> DataFrame
 
 Find timeseries metadata by source and/or element.
 """
-function query(endpoint::AbstractString, T, args...; kwargs...)
-	r = HTTP.request("GET", "https://$CLIENT_ID:@frost.met.no/$endpoint/v0.jsonld")
+function query(endpoint::AbstractString, T::Type{<:Data}, query::Vector{Pair} = Pair[], args...; kwargs...)
+	uri = HTTP.URI(
+		scheme = "https",
+		userinfo = "$CLIENT_ID:",
+		host = "frost.met.no",
+		path = "$endpoint/v0.jsonld",
+		query = join(join.(query, "="), "&"),
+	)
+
+	r = HTTP.get(uri)
+
 	JSON3.read(
 		String(r.body),
 		Response{T},

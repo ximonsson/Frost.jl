@@ -102,10 +102,10 @@ end
 Find timeseries metadata by source and/or element.
 """
 function observation_timeseries(sources = "", reference_time = "")
-	query("observations/availableTimeSeries", ObservationTimeSeries)
+	query("/observations/availableTimeSeries", ObservationTimeSeries)
 end
 
-struct Observation <: Data
+struct Observation
 	element_id::Union{String,Nothing}
 	orig_value::Union{String,Nothing}
 	code_table::Union{String,Nothing}
@@ -137,7 +137,7 @@ StructTypes.names(::Type{Observation}) = (
 	(:data_version, :dataVersion),
 )
 
-struct ObservationAtRefTime
+struct ObservationAtRefTime <: Data
 	source_id::String
 	geometry::Point
 	ref_time::ZonedDateTime
@@ -157,5 +157,5 @@ StructTypes.names(::Type{ObservationAtRefTime}) = (
 Get observation data from the Frost API.
 """
 function observations(srcs, reftime, els)
-
+	query("/observations", Observation)
 end

@@ -91,5 +91,5 @@ function Base.NamedTuple(s::Source)
 end
 
 function sources(IDs = "", types = "")
-	query("sources", Source)
+	query("/sources", Source)
 end
