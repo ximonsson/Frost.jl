@@ -146,53 +146,6 @@ function observation_timeseries(sources = "", reference_time = "")
 	)
 end
 
-
-"""
-
-	elementId (string, optional):
-
-The ID of the element being observed. ,
-value (string, optional):
-
-The observed value (either a number or a UTC datetime of the format YYYY-MM-DD hh:mm:ss.sss). ,
-origValue (string, optional):
-
-The original observed value (either a number or a UTC datetime of the format YYYY-MM-DD hh:mm:ss.sss). ,
-unit (string, optional):
-
-The unit of measurement of the observed value. ,
-codeTable (string, optional):
-
-If the unit is a code, the codetable that describes the codes used. ,
-level (Level, optional):
-
-The vertical level at which the value was observed (if known). ,
-timeOffset (string, optional):
-
-The offset from referenceTime at which the observation applies. ,
-timeResolution (string, optional):
-
-The time between consecutive observations in the time series to which the observation belongs. ,
-timeSeriesId (object, optional):
-
-The internal ID of the time series to which the observation belongs. ,
-performanceCategory (string, optional):
-
-The performance category of the source when the value was observed. ,
-exposureCategory (string, optional):
-
-The exposure category of the source when the value was observed. ,
-qualityCode (object, optional):
-
-The quality control flag of the observed value. ,
-controlInfo (string, optional):
-
-The control info of the observed value. ,
-dataVersion (object, optional):
-
-The data version of the data value, if one exists (**Note: Currently not available for any observation data).
-
-"""
 struct Observation <: Data
 	element_id::Union{String,Nothing}
 	orig_value::Union{String,Nothing}
