@@ -158,7 +158,7 @@ struct Observation <: Data
 	exposure_category::Union{String,Nothing}
 	quality_code::Union{Int,Nothing}
 	control_info::Union{String,Nothing}
-	data_version:Union{Int,Nothing}
+	data_version::Union{Int,Nothing}
 end
 
 StructTypes.StructType(::Type{Observation}) = StructTypes.Struct()
@@ -178,6 +178,19 @@ StructTypes.names(::Type{Observation}) = (
 	(:data_version, :dataVersion),
 )
 
+struct ObservationAtRefTime
+	source_id::String
+	geometry::Point
+	ref_time::ZonedDateTime
+	observations::Vector{Observation}
+end
+
+StructTypes.StructType(::Type{ObservationAtRefTime}) = StructTypes.Struct()
+
+StructTypes.names(::Type{ObservationAtRefTime}) = (
+	(:source_id, :sourceId),
+	(:ref_time, :referenceTime),
+)
 
 """
 	observations(srcs, retime, els)
