@@ -18,6 +18,7 @@ StructTypes.names(::Type{Point}) = (
 	(:coordinates, :coordinates),
 )
 
+include("response.jl")
 include("sources.jl")
 include("observations.jl")
 
