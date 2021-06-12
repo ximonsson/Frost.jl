@@ -46,7 +46,7 @@ Find timeseries metadata by source and/or element.
 function query(
 	endpoint::AbstractString,
 	T::Type{<:Data},
-	query::Vector{Pair{Symbol,String}} = Pair[],
+	query::Vector{Pair{Symbol,String}} = Pair{Symbol,String}[],
 	args...;
 	kwargs...
 )
