@@ -79,7 +79,7 @@ function Base.NamedTuple(o::ObservationTimeSeries)
 	append!(
 		cols,
 		o.geometry |> !isnothing ?
-			[:lat => s.geometry.coordinates[1], :lon => s.geometry.coordinates[2]] :
+			[:lat => s.geometry.coordinates[2], :lon => s.geometry.coordinates[1]] :
 			[:lat => missing, :lon => missing]
 	)
 
