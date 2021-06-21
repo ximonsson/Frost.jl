@@ -36,7 +36,8 @@ StructTypes.names(::Type{Response{T}}) where T<:Data = (
 	(:data, :data),
 )
 
-DataFrames.DataFrame(r::Response) = map(NamedTuple, r.data) |> DataFrame
+DataFrames.DataFrame(r::Response, args...; kwargs...) =
+	DataFrame(reduce(vcat, map(NamedTuple, r.data)), args...; kwargs...)
 
 """
 	query(endpoint::AbstractString, T::Data)

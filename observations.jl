@@ -94,8 +94,6 @@ function Base.NamedTuple(o::ObservationTimeSeries)
 	return cols |> NamedTuple
 end
 
-#StructTypes.StructType(::Type{Response{ObservationTimeSeries}}) = StructTypes.Struct()
-
 """
 	obsersaction_timeseries()
 
@@ -139,6 +137,41 @@ StructTypes.names(::Type{Observation}) = (
 	(:data_version, :dataVersion),
 )
 
+function Base.NamedTuple(o::Observation)
+	#
+	# some columns point to vectors, mark these as "special"
+	# they will be joined to one string
+	#
+
+	special_fields = []
+
+	special_fn(f) = getfield(o, f) |> isnothing ? f => missing : f => join(getfield(o, f), ";")
+
+	#
+	# create columns for DataFrame
+	#
+	# non-special columns
+
+	fs = filter(
+		∉([special_fields; [:level]],),
+		fieldnames(Observation),
+	)
+
+	cols = [x => y for (x, y) in zip(
+		fs, map(f -> something(getfield(o, f), missing), fs)
+	)]
+
+	# level
+	append!(
+		cols,
+		o.level |> isnothing ?
+			[:level_type => missing, :level_unit => missing, :level_value => missing] :
+			[:level_type => o.level.level_type, :level_unit => o.level.unit, :level_value => o.level.value]
+	)
+
+	return cols |> NamedTuple
+end
+
 struct ObservationAtRefTime <: Data
 	source_id::Union{String,Nothing}
 	geometry::Union{Point,Nothing}
@@ -153,11 +186,55 @@ StructTypes.names(::Type{ObservationAtRefTime}) = (
 	(:ref_time, :referenceTime),
 )
 
+function Base.NamedTuple(o::ObservationAtRefTime)
+	# fields
+	fs = filter(
+		∉([:geometry, :observations],),
+		fieldnames(ObservationAtRefTime),
+	)
+
+	cols = [x => y for (x, y) in zip(
+		fs, map(f -> something(getfield(o, f), missing), fs)
+	)]
+
+	# geometry
+	append!(
+		cols,
+		o.geometry |> !isnothing ?
+			[:lat => s.geometry.coordinates[2], :lon => s.geometry.coordinates[1]] :
+			[:lat => missing, :lon => missing]
+	)
+
+	cols = cols |> NamedTuple
+
+	return map(o -> merge(o |> NamedTuple, cols), o.observations)
+end
+
 """
 	observations(srcs, retime, els)
 
 Get observation data from the Frost API.
 """
-function observations(srcs, reftime, els)
-	query("/observations", ObservationAtRefTime, [:sources => srcs, :referencetime => reftime, :elements => els])
+function observations(
+	srcs::Union{AbstractString,Vector{<:AbstractString}},
+	reftime::Pair{<:TimeType,<:TimeType},
+	els::Union{AbstractString,Vector{<:AbstractString}},
+	timeres::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+)
+	# formating functions
+	fmt(δ::TimeType) = Dates.format(δ, "yyyy-mm-dd")
+	fmt(s::AbstractString) = s
+	fmt(v::Vector{<:AbstractString}) = join(v, ",")
+
+	params = [
+		:sources => fmt(srcs),
+		:referencetime => fmt(reftime.first) * "/" * fmt(reftime.second),
+		:elements => fmt(els),
+	]
+
+	if !ismissing(timeres)
+		params = [params; :timeresolutions => fmt(timeres)]
+	end
+
+	query("/observations", ObservationAtRefTime, params)
 end
