@@ -95,12 +95,45 @@ function Base.NamedTuple(o::ObservationTimeSeries)
 end
 
 """
-	obsersaction_timeseries()
+	observation_timeseries(
+		sources = missing,
+		ref_time = missing,
+		els = missing,
+		time_res = missing,
+	)
 
 Find timeseries metadata by source and/or element.
 """
-function observation_timeseries(sources = "", reference_time = "")
-	query("/observations/availableTimeSeries", ObservationTimeSeries)
+function observation_timeseries(;
+	srcs::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+	ref_time::Union{Missing,Pair{<:TimeType,:TimeType}} = missing,
+	els::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+	time_res::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+)
+	# formating functions
+	fmt(δ::TimeType) = Dates.format(δ, "yyyy-mm-dd")
+	fmt(s::AbstractString) = s
+	fmt(v::Vector{<:AbstractString}) = join(v, ",")
+
+	params = []
+
+	if !ismissing(srcs)
+		params = [params; :sources => fmt(srcs)]
+	end
+
+	if !ismissing(ref_time)
+		params = [params; :referencetime => fmt(reftime.first) * "/" * fmt(reftime.second)]
+	end
+
+	if !ismissing(els)
+		params = [params; :elements => fmt(els)]
+	end
+
+	if !ismissing(time_res)
+		params = [params; :timeresolutions => fmt(time_res)]
+	end
+
+	query("/observations/availableTimeSeries", ObservationTimeSeries, params)
 end
 
 struct Observation
