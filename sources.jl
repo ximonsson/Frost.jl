@@ -1,4 +1,4 @@
-struct Source <: Data
+struct Source <: AbstractData
 	type::Union{String,Nothing}
 	ID::Union{String,Nothing}
 	name::Union{String,Nothing}

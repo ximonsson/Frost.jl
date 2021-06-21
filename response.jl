@@ -1,6 +1,6 @@
-abstract type Data end
+abstract type AbstractData end
 
-struct Response{T<:Data}
+struct Response{T<:AbstractData}
 	context::Union{String,Nothing}
 	type::Union{String,Nothing}
 	api_version::Union{String,Nothing}
@@ -17,9 +17,9 @@ struct Response{T<:Data}
 	data::Union{Vector{T},Nothing}
 end
 
-StructTypes.StructType(::Type{Response{T}}) where T<:Data = StructTypes.Struct()
+StructTypes.StructType(::Type{Response{T}}) where T<:AbstractData = StructTypes.Struct()
 
-StructTypes.names(::Type{Response{T}}) where T<:Data = (
+StructTypes.names(::Type{Response{T}}) where T<:AbstractData = (
 	(:context, Symbol("@context")),
 	(:type, Symbol("@type")),
 	(:api_version, :apiVersion),
@@ -39,13 +39,13 @@ StructTypes.names(::Type{Response{T}}) where T<:Data = (
 DataFrames.DataFrame(r::Response) = map(NamedTuple, r.data) |> DataFrame
 
 """
-	query(endpoint::AbstractString, T::Data)
+	query(endpoint::AbstractString, T::AbstractData)
 
 Find timeseries metadata by source and/or element.
 """
 function query(
 	endpoint::AbstractString,
-	T::Type{<:Data},
+	T::Type{<:AbstractData},
 	query::Vector{Pair{Symbol,String}} = Pair{Symbol,String}[],
 	args...;
 	kwargs...

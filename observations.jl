@@ -8,7 +8,7 @@ StructTypes.StructType(::Type{Level}) = StructTypes.Struct()
 
 StructTypes.names(::Type{Level}) = ((:level_type, :levelType),)
 
-struct ObservationTimeSeries <: Data
+struct ObservationTimeSeries <: AbstractData
 	source_id::Union{String,Nothing}
 	geometry::Union{Point,Nothing}
 	level::Union{Level,Nothing}
@@ -139,7 +139,7 @@ StructTypes.names(::Type{Observation}) = (
 	(:data_version, :dataVersion),
 )
 
-struct ObservationAtRefTime <: Data
+struct ObservationAtRefTime <: AbstractData
 	source_id::Union{String,Nothing}
 	geometry::Union{Point,Nothing}
 	ref_time::Union{ZonedDateTime,Nothing}
@@ -158,6 +158,6 @@ StructTypes.names(::Type{ObservationAtRefTime}) = (
 
 Get observation data from the Frost API.
 """
-function observations(srcs, reftime, els)
+function observations(srcs::AbstractString, reftime::AbstractString, els::AbstractString)
 	query("/observations", ObservationAtRefTime, [:sources => srcs, :referencetime => reftime, :elements => els])
 end
