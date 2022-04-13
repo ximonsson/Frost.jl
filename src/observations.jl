@@ -115,22 +115,22 @@ function observation_timeseries(;
 	fmt(s::AbstractString) = s
 	fmt(v::Vector{<:AbstractString}) = join(v, ",")
 
-	params = []
+	params = Pair{Symbol,String}[]
 
 	if !ismissing(srcs)
-		params = [params; :sources => fmt(srcs)]
+		push!(params, :sources => fmt(srcs))
 	end
 
 	if !ismissing(ref_time)
-		params = [params; :referencetime => fmt(reftime.first) * "/" * fmt(reftime.second)]
+		push!(params, :referencetime => fmt(reftime.first) * "/" * fmt(reftime.second))
 	end
 
 	if !ismissing(els)
-		params = [params; :elements => fmt(els)]
+		push!(params, :elements => fmt(els))
 	end
 
 	if !ismissing(time_res)
-		params = [params; :timeresolutions => fmt(time_res)]
+		push!(params, :timeresolutions => fmt(time_res))
 	end
 
 	query("/observations/availableTimeSeries", ObservationTimeSeries, params)
@@ -249,10 +249,10 @@ end
 Get observation data from the Frost API.
 """
 function observations(
-	srcs::Union{AbstractString,Vector{<:AbstractString}},
+	srcs::Union{AbstractString,AbstractVector{<:AbstractString}},
 	reftime::Pair{<:TimeType,<:TimeType},
-	els::Union{AbstractString,Vector{<:AbstractString}},
-	timeres::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+	els::Union{AbstractString,AbstractVector{<:AbstractString}},
+	timeres::Union{Missing,Union{AbstractString,AbstractVector{<:AbstractString}}} = missing,
 )
 	# formating functions
 	fmt(δ::TimeType) = Dates.format(δ, "yyyy-mm-dd")
