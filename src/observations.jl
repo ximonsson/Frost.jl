@@ -105,10 +105,10 @@ end
 Find timeseries metadata by source and/or element.
 """
 function observation_timeseries(;
-	srcs::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+	srcs::Union{Missing,Union{AbstractString,AbstractVector{<:AbstractString}}} = missing,
 	ref_time::Union{Missing,Pair{<:TimeType,:TimeType}} = missing,
-	els::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
-	time_res::Union{Missing,Union{AbstractString,Vector{<:AbstractString}}} = missing,
+	els::Union{Missing,Union{AbstractString,AbstractVector{<:AbstractString}}} = missing,
+	time_res::Union{Missing,Union{AbstractString,AbstractVector{<:AbstractString}}} = missing,
 )
 	# formating functions
 	fmt(δ::TimeType) = Dates.format(δ, "yyyy-mm-dd")
