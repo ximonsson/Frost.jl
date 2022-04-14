@@ -47,7 +47,7 @@ Find timeseries metadata by source and/or element.
 function query(
 	endpoint::AbstractString,
 	T::Type{<:AbstractData},
-	query::Vector{Pair{Symbol,String}} = Pair{Symbol,String}[],
+	query::AbstractVector{<:Pair{Symbol,<:AbstractString}} = Pair{Symbol,String}[],
 	args...;
 	kwargs...
 )
@@ -56,12 +56,12 @@ function query(
 		userinfo = "$CLIENT_ID:",
 		host = "frost.met.no",
 		path = "$endpoint/v0.jsonld",
-		query = join(join.(query, "="), "&"),
+		query = HTTP.escapeuri(query)
 	)
 
 	r = HTTP.get(uri)
 
-	JSON3.read(
+	return JSON3.read(
 		String(r.body),
 		Response{T},
 		dateformat = dateformat"yyyy-mm-ddTHH:MM:SS.ssszzz",

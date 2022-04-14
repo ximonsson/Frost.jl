@@ -257,7 +257,7 @@ function observations(
 	# formating functions
 	fmt(δ::TimeType) = Dates.format(δ, "yyyy-mm-dd")
 	fmt(s::AbstractString) = s
-	fmt(v::Vector{<:AbstractString}) = join(v, ",")
+	fmt(v::AbstractVector{<:AbstractString}) = join(fmt.(v), ",")
 
 	params = [
 		:sources => fmt(srcs),
