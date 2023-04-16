@@ -2,8 +2,8 @@ module Frost
 
 using Dates, DataFrames, HTTP, JSON3, StructTypes, TimeZones
 
-const CLIENT_ID = ENV["CLIENT_ID"]
-const CLIENT_SECRET = ENV["CLIENT_SECRET"]
+const CLIENT_ID = ENV["FROST_CLIENT_ID"]
+const CLIENT_SECRET = ENV["FROST_CLIENT_SECRET"]
 
 struct Point
 	type::String
